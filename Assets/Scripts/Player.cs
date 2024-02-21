@@ -19,6 +19,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float fallingGravityMultiplier = 1.5f;
 
     [Header("Debug")]
+    [SerializeField] private bool noClip = false;
     [SerializeField] private float horizontalInput = 0f;
     [SerializeField] private float verticalInput = 0f;
     [SerializeField] private float horizontalSmooth = 0f;
@@ -34,16 +35,24 @@ public class Player : MonoBehaviour
 
     private SpriteRenderer sprite;
     private Rigidbody2D rb;
+    private Collider2D col;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
         sprite = GetComponentInChildren<SpriteRenderer>();
     }
 
     void Update()
     {
         ReadInput();
+        if(noClip)
+        {
+            transform.Translate(1.5f * moveSpeed * Time.deltaTime * new Vector2(horizontalSmooth,verticalSmooth));
+            rb.velocity = Vector2.zero;
+            return;
+        }
         UpdateSprite();
         UpdateMovement();
         UpdateJumping();
@@ -56,6 +65,15 @@ public class Player : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
         horizontalSmooth = Input.GetAxis("Horizontal");
         verticalSmooth = Input.GetAxis("Vertical");
+        if(Input.GetKeyDown(KeyCode.C))
+        {
+            noClip = !noClip;
+            col.enabled = !noClip;
+            rb.gravityScale = (noClip) ? 0 : gravityScale;
+            Color color = sprite.color;
+            color.a = (noClip) ? 0.5f : 1f;
+            sprite.color = color;
+        }
     }
 
     private void UpdateSprite()
